@@ -37,14 +37,14 @@ double dt = 0.2;
 // the range of the environment
 double xMin, xMax, yMin, yMax;
 // the engine
-ImplicitEngine * _engine = 0;
+ImplicitEngine* _engine = 0;
 
 
-string getCmdOption(char ** begin, char ** end, const string & option)
+string getCmdOption(char** begin, char** end, const string& option)
 {
 
-	char ** itr = std::find(begin, end, option);
-	if (itr != end && ++itr != end) 
+	char** itr = std::find(begin, end, option);
+	if (itr != end && ++itr != end)
 	{
 		return string(*itr);
 	}
@@ -58,7 +58,7 @@ void destroy()
 }
 
 
-void setupScenario(const string &name)
+void setupScenario(const string& name)
 {
 
 	std::ifstream input(name);
@@ -70,15 +70,15 @@ void setupScenario(const string &name)
 	}
 
 	try {
-		
+
 		input >> xMin;
 		input >> xMax;
 		input >> yMin;
 		input >> yMax;
-		
+
 		//initialize the engine, given the dimensions of the environment
-		_engine->init(xMax - xMin,yMax - yMin, 10, 10);
-	
+		_engine->init(xMax - xMin, yMax - yMin, 10, 10);
+
 		// Read the default parameters for the agents	
 		int nrAgents;
 		input >> nrAgents;
@@ -97,15 +97,15 @@ void setupScenario(const string &name)
 			input >> par.prefSpeed;
 			input >> par.radius;
 			_engine->addAgent(par);
-		}		
+		}
 	}
-	catch (std::exception &e) {
+	catch (std::exception& e) {
 		std::cerr << "Error reading the scenario file \n" << e.what() << "\n";
 		destroy();
 		exit(1);
 	}
 
-	input.close();	
+	input.close();
 
 }
 
@@ -114,6 +114,12 @@ void draw()
 	VisualizerCallisto::resetAnimation();
 	double animation_step = dt;
 	const vector<ImplicitAgent*>& agents = _engine->getAgents();
+	//draw box obstacle
+	int gobs = VisualizerCallisto::createGroup("obstacles", VisualizerCallisto::getDrawingID());
+	int obsId = VisualizerCallisto::createGroup("obstacle", gobs);
+	//VisualizerCallisto::createCylinderCharacter(obsId, 1.0f, .5f, "obstacle", false,-1,0.0f,1.5f);
+	VisualizerCallisto::createBox(obsId, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 128, 128, 128);
+
 	for (unsigned int j = 0; j < agents.size(); ++j)
 	{
 		const ImplicitAgent* agent = agents[j];
@@ -126,7 +132,7 @@ void draw()
 		double time = 0.;
 		vector<Vector2D> path = agent->path();
 		vector<Vector2D> or = agent->orientations();
-		vector<Vector2D>::iterator it2 = or.begin();
+		vector<Vector2D>::iterator it2 = or .begin();
 		vector<Vector2D>::iterator it_end = path.end();
 		for (vector<Vector2D>::iterator it = path.begin(); it != it_end; ++it, time += animation_step, ++it2)
 		{
@@ -136,7 +142,7 @@ void draw()
 		}
 	}
 
-	
+
 	int gpath = VisualizerCallisto::createGroup("paths", VisualizerCallisto::getDrawingID());
 	// draw the paths
 	for (unsigned int j = 0; j < agents.size(); ++j)
@@ -148,8 +154,8 @@ void draw()
 		vector<Vector2D>::iterator it_end = path.end();
 		int nrPts = (int)path.size();
 		int np[1] = { nrPts };
-		float *points = new float[nrPts * 3];
-		float *ptr = points;
+		float* points = new float[nrPts * 3];
+		float* ptr = points;
 		for (int i = 0; i < nrPts; ++i)
 		{
 			*ptr++ = (float)path[i].x();
@@ -161,8 +167,8 @@ void draw()
 }
 
 
-int main(int argc, char **argv)
-{	
+int main(int argc, char** argv)
+{
 	//parse command line arguments
 	string dtArgs = getCmdOption(argv, argv + argc, "-dt");
 	string framesArgs = getCmdOption(argv, argv + argc, "-frames");
@@ -173,13 +179,13 @@ int main(int argc, char **argv)
 		dt = atof(dtArgs.c_str());
 	if (!framesArgs.empty())
 		numFrames = atoi(framesArgs.c_str());
-    
+
 	//load the engine and setup the scenario
 	_engine = new ImplicitEngine();
 	_engine->setTimeStep(dt);
 	_engine->setMaxSteps(numFrames);
 	setupScenario(scenarioFilename);
-	
+
 	//read some parameters
 	Parser cParser;
 	if (!parFilename.empty())
@@ -192,7 +198,7 @@ int main(int argc, char **argv)
 	VisualizerCallisto::setBackgroundColour(0, 0.99f, 0.99f, 0.99f);
 	VisualizerCallisto::setBoundingBox((float)xMin, (float)xMax, (float)yMin, (float)yMax);
 	VisualizerCallisto::resetDrawing();
-	VisualizerCallisto::resetAnimation();		
+	VisualizerCallisto::resetAnimation();
 
 	// Run the scenario
 	std::cout << "Computing simulation" << std::endl;
@@ -215,6 +221,6 @@ int main(int argc, char **argv)
 	VisualizerCallisto::destroy();
 
 	return 0;
-	
-	
+
+
 }

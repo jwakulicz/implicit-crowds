@@ -32,10 +32,10 @@
  *  Contact: ioannis@clemson.edu
  */
 
-/*!
-*  @file       ImplicitEngine.h
-*  @brief      Contains the ImplicitEngine class.
-*/
+ /*!
+ *  @file       ImplicitEngine.h
+ *  @brief      Contains the ImplicitEngine class.
+ */
 
 #pragma once
 #include "ImplicitAgent.h"
@@ -46,9 +46,9 @@ using Vector = Eigen::Matrix<T, Eigen::Dynamic, 1>;
 /**
 * @brief The engine that performs implicit simulations.
 */
-class ImplicitEngine 
+class ImplicitEngine
 {
-  public:
+public:
 	///Default Costructor
 	ImplicitEngine();
 	/// Destructor
@@ -69,7 +69,7 @@ class ImplicitEngine
 	/// @name Get/Set functionality
 	//@{
 	/// Returns the list of agents in the simulation. 
-	const vector<ImplicitAgent*> & getAgents() const{ return _agents; }
+	const vector<ImplicitAgent*>& getAgents() const { return _agents; }
 	///Returns the corresponding agent given its id
 	ImplicitAgent* getAgent(int id) const { return _agents[id]; }
 	/// Returns the time step of the simulation. 
@@ -96,17 +96,21 @@ protected:
 	/// Should be called after a solution has been found for the current time step
 	void finalizeProblem();
 	///  Returns the objective value for a given set of velocities. Will be used by linesearch
-	double value(const  VectorXd &x);
+	double value(const  VectorXd& x);
 	/// Returns the objective value and computes the gradient of the objective. Will be used by minimize
-	double value(const  VectorXd &x, VectorXd &grad);
+	double value(const  VectorXd& x, VectorXd& grad);
 	/// The inverse time-to-collision energy. TODO: Use a different approximation than the linear extrapolation mentioned in the paper 
-	inline double inverse_ttc_energy(double Pa_x, double Pa_y, double Pb_x, double Pb_y, double Va_x, double Va_y, double Vb_x, double Vb_y, double radius, double* grad = NULL);
+	inline double inverse_ttc_energy(double Pa_x, double Pa_y, double Pb_x, double Pb_y, double Va_x, double Va_y, double Vb_x, double Vb_y, double radius, double* grad = NULL, bool toObstacle = false, double xw = 0.0f, double yw = 0.0f);
 	/// The minimum distance energy across a timestep. TODO: Replace this with velocity uncertainty (see ) that will make this obsolete
-	inline bool min_distance_energy(double Pa_x, double Pa_y, double Pb_x, double Pb_y, double Va_x, double Va_y, double Vb_x, double Vb_y, double radius, double& energy, double* grad = NULL);
+	inline bool min_distance_energy(double Pa_x, double Pa_y, double Pb_x, double Pb_y, double Va_x, double Va_y, double Vb_x, double Vb_y, double radius, double& energy, double* grad = NULL, bool toObstacle = false, double xw = 0.0f, double yw = 0.0f);
 	/// L-BFGS implementation
-	inline void minimize(Vector<double> & x0);
+	inline void minimize(Vector<double>& x0);
 	/// Inexact line search using the Armijo condition
-	inline double linesearch(const Vector<double> & x0, const Vector<double> & searchDir, const double phi0, const Vector<double>& grad, const double alpha_init = 1.0);
+	inline double linesearch(const Vector<double>& x0, const Vector<double>& searchDir, const double phi0, const Vector<double>& grad, const double alpha_init = 1.0);
+	/// Clamps a point to the boundary of a box
+	inline double clamp(const double query, const double minBound, const double maxBound);
+	/// Returns the closest point on boundary of box
+	inline Vector2D closestPointOnRectangle(const Vector2D& point, const Vector2D& boxCentre, const double xw, const double yw);
 	//@}
 
 protected:
@@ -121,13 +125,15 @@ protected:
 	///Determine whether all agents have reached their goals
 	bool _reachedGoals;
 	/// The proximity database
-	SpatialProximityDatabase * _spatialDatabase;
+	SpatialProximityDatabase* _spatialDatabase;
 	/// The agents in the simulation
 	vector<ImplicitAgent* >  _agents;
 	/// Max cpu threads
 	int _max_threads;
 	/// The total number of agents
 	unsigned int _noAgents;
+	/// Total number of obstacles
+	unsigned int _noObstacles;
 
 	/// @name Parameters that affect a simulation. Can be set via a file.
 	//@{
@@ -144,7 +150,7 @@ protected:
 	/// Stopping criteria
 	double _eps_x;
 	/// L-BFGS window size
-	int _window; 
+	int _window;
 	//@}
 
 	/// @name Auxiliary variables needed for performing an implicit step
@@ -152,6 +158,6 @@ protected:
 	VectorXd _pos, _posNew, _vel, _vGoal, _radius, _vNew;
 	size_t _noVars;
 	int _activeAgents; // The number of active agents
- 	vector<vector<ProximityDatabaseItem*>> _nn; // Vector of nearest neighbors per agent
+	vector<vector<ProximityDatabaseItem*>> _nn; // Vector of nearest neighbors per agent
 	//@}
 };

@@ -38,7 +38,7 @@ class ImplicitAgent : public ProximityDatabaseItem
 public:
 	ImplicitAgent();
 	~ImplicitAgent();
-	void init(const AgentInitialParameters& initialConditions, SpatialProximityDatabase *const);
+	void init(const AgentInitialParameters& initialConditions, SpatialProximityDatabase* const);
 	void update(double dt);
 	void doStep(double dt);
 
@@ -69,22 +69,22 @@ public:
 	/// Returns the group id of the agent.  
 	int gid() const { return _gid; }
 	/// Sets the preferred velocity of the agent to a specific value.	
-	void setPreferredVelocity(const Vector2D& v){_vPref = v;}
+	void setPreferredVelocity(const Vector2D& v) { _vPref = v; }
 	/// Sets the  velocity of the agent to a specific value.	
 	void setVelocity(const Vector2D& v) { _velocity = v; }
 	/// Sets the active id of the agent to a specific value.	
-	void setActiveID(const int& id) { _activeid = id; }	
+	void setActiveID(const int& id) { _activeid = id; }
 	/// Returns the path of the agent
-	vector<Vector2D> path(void) const {return _path;}
+	vector<Vector2D> path(void) const { return _path; }
 	/// Returns the orientations of the agent across its trajectory
-	vector<Vector2D> orientations(void) const {return _orientations;}
+	vector<Vector2D> orientations(void) const { return _orientations; }
 	/// Finds the neighbors of the agent given a sensing radius
 	void findNeighbors(double neighborDist, vector<ProximityDatabaseItem*>& nn);
 	//@}
 
 protected:
 	inline void destroy();
-			
+
 protected:
 	/// the preferred velocity of the character
 	Vector2D _vPref;
@@ -113,7 +113,7 @@ protected:
 	/// The goal radius of the character
 	double _goalRadiusSq;
 	/// a pointer to this interface object for the proximity database
-	ProximityToken* _proximityToken;	
+	ProximityToken* _proximityToken;
 	/// path and orientations
 	vector<Vector2D> _path;
 	vector<Vector2D> _orientations;

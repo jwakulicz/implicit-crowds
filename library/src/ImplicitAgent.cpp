@@ -42,7 +42,7 @@ void ImplicitAgent::destroy()
 	}
 }
 
-void ImplicitAgent::init(const AgentInitialParameters& initialConditions, SpatialProximityDatabase *const pd)
+void ImplicitAgent::init(const AgentInitialParameters& initialConditions, SpatialProximityDatabase* const pd)
 {
 	// initialize the agent based on the initial conditions
 	_position = initialConditions.position;
@@ -51,11 +51,11 @@ void ImplicitAgent::init(const AgentInitialParameters& initialConditions, Spatia
 	_id = initialConditions.id;
 	_activeid = _id;
 	_gid = initialConditions.gid;
-	_goalRadiusSq = initialConditions.goalRadius*initialConditions.goalRadius;
+	_goalRadiusSq = initialConditions.goalRadius * initialConditions.goalRadius;
 	_velocity = initialConditions.velocity;
 	_goal = initialConditions.goal;
-	_orientation = (_goal-_position).normalized();
-	_enabled = true;	
+	_orientation = (_goal - _position).normalized();
+	_enabled = true;
 
 	//add to the database
 	_proximityToken = pd->allocateToken(this);
@@ -74,16 +74,16 @@ void ImplicitAgent::doStep(double dt)
 	double distSqToGoal = _vPref.squaredNorm();
 	if (distSqToGoal < _goalRadiusSq)
 	{
-			destroy();
-			_enabled = false;
-			return;
+		destroy();
+		_enabled = false;
+		return;
 	}
 
 	// compute preferred velocity
-	if (_prefSpeed * dt*_prefSpeed * dt > distSqToGoal)
-	  _vPref = _vPref/dt;
-	else 
-	 _vPref *= _prefSpeed / sqrt(distSqToGoal);
+	if (_prefSpeed * dt * _prefSpeed * dt > distSqToGoal)
+		_vPref = _vPref / dt;
+	else
+		_vPref *= _prefSpeed / sqrt(distSqToGoal);
 }
 
 
@@ -92,11 +92,11 @@ void ImplicitAgent::update(double dt)
 {
 	//clamp(_velocity, _maxSpeed);		
 	_position += _velocity * dt;
-	
+
 	//simple smoothing of the orientation; there are more elaborate approaches
 	if (_velocity.x() != 0 || _velocity.y() != 0)
-		 _orientation = _orientation + (_velocity.normalized() - _orientation) * 0.4;
-	
+		_orientation = _orientation + (_velocity.normalized() - _orientation) * 0.4;
+
 	// notify proximity database that our position has changed
 	_proximityToken->updateForNewPosition(_position);
 	// add position and orientation to the list

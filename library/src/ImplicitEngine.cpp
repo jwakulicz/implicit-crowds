@@ -27,6 +27,20 @@
 
 #define _INFTY 9e9
 
+//double radius_obstacle1 = 1.0f;
+//double x_obstacle1 = 0.0f;
+//double y_obstacle1 = 1.5f;
+
+//double radius_obstacle2 = 1.0f;
+//double x_obstacle2 = 0.0f;
+//double y_obstacle2 = -1.5f;
+
+double xw = 1.0f;
+double yw = 1.0f;
+double x_obstacle1 = 0.0f;
+double y_obstacle1 = 0.0f;
+
+
 ImplicitEngine::ImplicitEngine()
 {
 	_spatialDatabase = NULL;
@@ -39,7 +53,7 @@ ImplicitEngine::~ImplicitEngine()
 
 	for (vector<ImplicitAgent*>::iterator it = _agents.begin(); it != _agents.end(); ++it)
 	{
-		delete *it;
+		delete* it;
 		*it = 0x0;
 
 	}
@@ -93,15 +107,15 @@ bool ImplicitEngine::endSimulation()
 
 void ImplicitEngine::draw()
 {
-	
+
 }
 
 void ImplicitEngine::addAgent(AgentInitialParameters& agentConditions)
 {
 	ImplicitAgent* newAgent = new ImplicitAgent();
 	if (newAgent != NULL) {
-	    agentConditions.id = _noAgents;
-		newAgent->init(agentConditions , _spatialDatabase);
+		agentConditions.id = _noAgents;
+		newAgent->init(agentConditions, _spatialDatabase);
 		_agents.push_back(newAgent);
 		++_noAgents;
 	}
@@ -182,24 +196,24 @@ void ImplicitEngine::finalizeProblem()
 			_agents[i]->setVelocity(Vector2D(_vNew(_agents[i]->activeID()), _vNew(_agents[i]->activeID() + _activeAgents)));
 		}
 	}
-	
+
 }
 
-double ImplicitEngine::value(const VectorXd &vNew)
+double ImplicitEngine::value(const VectorXd& vNew)
 {
 	//const int n = vNew.rows();
-	_posNew = _pos + vNew*_dt;
+	_posNew = _pos + vNew * _dt;
 	// acceleration and goal velocity contributions
-	double f = 0.5*_dt*((vNew - _vel).array().square()).sum() + 0.5*_ksi*((vNew - _vGoal).array().square()).sum();
+	double f = 0.5 * _dt * ((vNew - _vel).array().square()).sum() + 0.5 * _ksi * ((vNew - _vGoal).array().square()).sum();
 
 	bool exit = false;
-	#pragma omp parallel for shared(exit) reduction(+:f) num_threads(_max_threads)
+	//#pragma omp parallel for shared(exit) reduction(+:f) num_threads(_max_threads)
 	for (int i = 0; i < _activeAgents; ++i)
 	{
 		if (!exit)
 		{
 			size_t id_y = i + _activeAgents;
-			
+
 			for (unsigned int j = 0; j < _nn[i].size() && !exit; ++j)
 			{
 				const ImplicitAgent* other = static_cast<ImplicitAgent*>(_nn[i][j]);
@@ -226,27 +240,63 @@ double ImplicitEngine::value(const VectorXd &vNew)
 				}
 
 			}
+			{
+				double radius = _radius[i]; //+ radius_obstacle1;
+				double distance_energy = 0;
+				double g[] = { 0, 0 };
+				if (min_distance_energy(_pos[i], _pos[id_y], x_obstacle1, y_obstacle1,
+					vNew[i], vNew[id_y], 0.0f, 0.0f, radius, distance_energy, g, true, xw, yw))
+					exit = true;
+				else
+				{
+					// compute the ttc energy
+					double ttc_energy = inverse_ttc_energy(_posNew[i], _posNew[id_y], x_obstacle1, y_obstacle1,
+						vNew[i], vNew[id_y], 0.0f, 0.0f, radius, g, true, xw, yw);
 
+					f += /*2**/ttc_energy;
+					f += /*2**/distance_energy;
+				}
+			}
+
+			//{
+			//	double radius = _radius[i] + radius_obstacle2;
+			//	double distance_energy = 0;
+			//	double g[] = { 0, 0 };
+			//	if (min_distance_energy(_pos[i], _pos[id_y], x_obstacle2, y_obstacle2,
+			//		vNew[i], vNew[id_y], 0.0, 0.0, radius, distance_energy, g))
+			//		exit = true;
+			//	else
+			//	{
+			//		// compute the ttc energy
+			//		double ttc_energy = inverse_ttc_energy(_posNew[i], _posNew[id_y], x_obstacle2, y_obstacle2,
+			//			vNew[i], vNew[id_y], 0.0, 0.0, radius, g);
+
+			//		f += /*2**/ttc_energy;
+			//		f += /*2**/distance_energy;
+			//	}
+			//}
 		}
 	}
+
 	if (exit)
 		f = _INFTY;
 
 	return f;
 }
 
-double ImplicitEngine::value(const VectorXd &vNew, VectorXd &grad)
+
+double ImplicitEngine::value(const VectorXd& vNew, VectorXd& grad)
 {
-	_posNew = _pos + vNew*_dt;
+	_posNew = _pos + vNew * _dt;
 	// acceleration and goal velocity contributions
 	VectorXd vNewMinVel = vNew - _vel;
 	VectorXd vNewMinVGoal = vNew - _vGoal;
-	double f = 0.5*_dt*(vNewMinVel.array().square()).sum() + 0.5*_ksi*(vNewMinVGoal.array().square()).sum();
-	grad = _ksi*vNewMinVGoal + (1 / _dt)*vNewMinVel;
+	double f = 0.5 * _dt * (vNewMinVel.array().square()).sum() + 0.5 * _ksi * (vNewMinVGoal.array().square()).sum();
+	grad = _ksi * vNewMinVGoal + (1 / _dt) * vNewMinVel;
 
 	bool exit = false;
 	//Agents
-	#pragma omp parallel for shared(exit) reduction(+:f) num_threads(_max_threads)
+	//#pragma omp parallel for shared(exit) reduction(+:f) num_threads(_max_threads)
 	for (int i = 0; i < _activeAgents; ++i)
 	{
 		if (!exit)
@@ -257,7 +307,7 @@ double ImplicitEngine::value(const VectorXd &vNew, VectorXd &grad)
 				const ImplicitAgent* other = static_cast<ImplicitAgent*>(_nn[i][j]);
 				int other_id = other->activeID();
 				//int other_id = this->_mappedIds[other->id()];
-				if (other_id != i)
+				if (other_id > i)
 				{
 					size_t other_id_y = other_id + _activeAgents;
 					double radius = _radius[i] + _radius[other_id];
@@ -272,20 +322,70 @@ double ImplicitEngine::value(const VectorXd &vNew, VectorXd &grad)
 						double ttc_energy = inverse_ttc_energy(_posNew[i], _posNew[id_y], _posNew[other_id], _posNew[other_id_y],
 							vNew[i], vNew[id_y], vNew[other_id], vNew[other_id_y], radius, g);
 
-						if (other_id > i) { // do not add the energy twice!  
-							f += ttc_energy;
-							f += distance_energy;
-						}
+						//if (other_id > i) { // do not add the energy twice!  
+						f += ttc_energy;
+						f += distance_energy;
+						//}
 
 						//add the gradients 
 						//In theory we could set the gradient of the neihbor to be the opposite of grad, but assuming openmp is used
 						//it's faster to recompute the energy and does not lead to any shared violations
 						grad[i] += g[0];
 						grad[id_y] += g[1];
-
+						grad[other_id] -= g[0];
+						grad[other_id_y] -= g[1];
 					}
 				}
 			}
+
+			{
+				//distance between centres
+				double radius = _radius[i]; //+ radius_obstacle1;
+				double distance_energy = 0;
+				double g[] = { 0, 0 };
+				if (min_distance_energy(_pos[i], _pos[id_y], x_obstacle1, y_obstacle1,
+					vNew[i], vNew[id_y], 0.0, 0.0, radius, distance_energy, g, true, xw, yw))
+					exit = true;
+				else
+				{
+					// compute the ttc energy
+					double ttc_energy = inverse_ttc_energy(_posNew[i], _posNew[id_y], x_obstacle1, y_obstacle1,
+						vNew[i], vNew[id_y], 0.0, 0.0, radius, g, true, xw, yw);
+
+					f += /*2**/ttc_energy;
+					f += /*2**/distance_energy;
+
+					//add the gradients 
+					//In theory we could set the gradient of the neihbor to be the opposite of grad, but assuming openmp is used
+					//it's faster to recompute the energy and does not lead to any shared violations
+					grad[i] += /*2**/g[0];
+					grad[id_y] += /*2**/g[1];
+				}
+			}
+
+			//{
+			//	double radius = _radius[i] + radius_obstacle2;
+			//	double distance_energy = 0;
+			//	double g[] = { 0, 0 };
+			//	if (min_distance_energy(_pos[i], _pos[id_y], x_obstacle2, y_obstacle2,
+			//		vNew[i], vNew[id_y], 0.0, 0.0, radius, distance_energy, g))
+			//		exit = true;
+			//	else
+			//	{
+			//		// compute the ttc energy
+			//		double ttc_energy = inverse_ttc_energy(_posNew[i], _posNew[id_y], x_obstacle2, y_obstacle2,
+			//			vNew[i], vNew[id_y], 0.0, 0.0, radius, g);
+
+			//		f += /*2**/ttc_energy;
+			//		f += /*2**/distance_energy;
+
+			//		//add the gradients 
+			//		//In theory we could set the gradient of the neihbor to be the opposite of grad, but assuming openmp is used
+			//		//it's faster to recompute the energy and does not lead to any shared violations
+			//		grad[i] += /*2**/g[0];
+			//		grad[id_y] += /*2**/g[1];
+			//	}
+			//}
 		}
 	}
 
@@ -296,45 +396,57 @@ double ImplicitEngine::value(const VectorXd &vNew, VectorXd &grad)
 }
 
 
-bool ImplicitEngine::min_distance_energy(double Pa_x, double Pa_y, double Pb_x, double Pb_y, double Va_x, double Va_y, double Vb_x, double Vb_y, double radius, double& energy, double* grad)
+bool ImplicitEngine::min_distance_energy(double Pa_x, double Pa_y, double Pb_x, double Pb_y, double Va_x, double Va_y, double Vb_x, double Vb_y, double radius, double& energy, double* grad, bool toObstacle, double xw, double yw)
 {
 	energy = 0;
-	double Xx = Pb_x - Pa_x;
-	double Xy = Pb_y - Pa_y;
+	double Xx;
+	double Xy;
+	if (toObstacle)
+	{
+		Vector2D Pb = closestPointOnRectangle(Vector2D{ Pa_x,Pa_y }, Vector2D{ Pb_x,Pb_y }, xw, yw);
+		Xx = Pb[0] - Pa_x;
+		Xy = Pb[1] - Pa_y;
+	}
+	else
+	{
+		Xx = Pb_x - Pa_x;
+		Xy = Pb_y - Pa_y;
+	}
+
 	double Vx = Va_x - Vb_x;
 	double Vy = Va_y - Vb_y;
 
 	double speed = Vx * Vx + Vy * Vy;
-	double rate = Xx*Vx + Xy*Vy;
+	double rate = Xx * Vx + Xy * Vy;
 	double tti = rate / (speed + 1e-4); // add a bit of noise since when speed = 0, tti is not differentiable
 	tti = max(min(tti, _dt), 0.);
 
-	double dx = Vx*tti - Xx;
-	double dy = Vy*tti - Xy;
-	double d = dx*dx + dy*dy;
+	double dx = Vx * tti - Xx;
+	double dy = Vy * tti - Xy;
+	double d = dx * dx + dy * dy;
 
-	if (d <= radius*radius) //tunelling
+	if ((d <= radius * radius)) //tunelling
 	{
 		return true;
 	}
 
 	d = sqrt(d);
 	double distance = d - radius;
-	energy = min(_eta/distance, _INFTY);
+	energy = min(_eta / distance, _INFTY);
 
-	if (grad != NULL && rate >0)
+	if (grad != NULL && rate > 0)
 	{
 		double tti_prime_x = 0, tti_prime_y = 0;
 		if (tti > 0 && tti < _dt)
 		{
-			double tti_prime_x = (Xx - 2 * tti*Vx) / speed;
-			double tti_prime_y = (Xy - 2 * tti*Vy) / speed;
+			double tti_prime_x = (Xx - 2 * tti * Vx) / speed;
+			double tti_prime_y = (Xy - 2 * tti * Vy) / speed;
 		}
 		double scale = -_eta / (d * distance * distance);
-		double distance_prime_x = dx*(tti + Vx*tti_prime_x) + dy*(Vy*tti_prime_x);
-		double distance_prime_y = dy*(tti + Vy*tti_prime_y) + dx*(Vx*tti_prime_y);
-		grad[0] += scale*distance_prime_x;
-		grad[1] += scale*distance_prime_y;
+		double distance_prime_x = dx * (tti + Vx * tti_prime_x) + dy * (Vy * tti_prime_x);
+		double distance_prime_y = dy * (tti + Vy * tti_prime_y) + dx * (Vx * tti_prime_y);
+		grad[0] += scale * distance_prime_x;
+		grad[1] += scale * distance_prime_y;
 	}
 
 	return false;
@@ -342,19 +454,33 @@ bool ImplicitEngine::min_distance_energy(double Pa_x, double Pa_y, double Pb_x, 
 }
 
 // here gradients are explicitly computed, though a bit too verbose (autodiff and/or Eigen will slow things down a bit)
-double ImplicitEngine::inverse_ttc_energy(double Pa_x, double Pa_y, double Pb_x, double Pb_y, double Va_x, double Va_y, double Vb_x, double Vb_y, double radius, double* grad)
+double ImplicitEngine::inverse_ttc_energy(double Pa_x, double Pa_y, double Pb_x, double Pb_y, double Va_x, double Va_y, double Vb_x, double Vb_y, double radius, double* grad, bool toObstacle, double xw, double yw)
 {
-	
-	double f = 0;
 
+	double f = 0;
+	double X_x;
+	double X_y;
+
+	if (toObstacle)
+	{
+		Vector2D Pb = closestPointOnRectangle(Vector2D{ Pa_x,Pa_y }, Vector2D{ Pb_x,Pb_y }, xw, yw);
+		X_x = Pb[0] - Pa_x;
+		X_y = Pb[1] - Pa_y;
+	}
+	else
+	{
+		//relative displacement
+		X_x = Pb_x - Pa_x;
+		X_y = Pb_y - Pa_y;
+	}
 	//relative velocity
 	double V_x = Va_x - Vb_x;
 	double V_y = Va_y - Vb_y;
 
-	//relative displacement
-	double X_x = Pb_x - Pa_x;
-	double X_y = Pb_y - Pa_y;
-	double x = sqrt(X_x*X_x + X_y*X_y);
+	////relative displacement
+	//double X_x = Pb_x - Pa_x;
+	//double X_y = Pb_y - Pa_y;
+	double x = sqrt(X_x * X_x + X_y * X_y);
 	double Xhat_x = X_x;
 	double Xhat_y = X_y;
 	if (x > 0)
@@ -364,7 +490,7 @@ double ImplicitEngine::inverse_ttc_energy(double Pa_x, double Pa_y, double Pb_x,
 	}
 
 	//parallel component
-	double vp = Xhat_x*V_x + Xhat_y*V_y;
+	double vp = Xhat_x * V_x + Xhat_y * V_y;
 	if (vp < 0) //agents are diverging
 	{
 		return 0;
@@ -372,54 +498,54 @@ double ImplicitEngine::inverse_ttc_energy(double Pa_x, double Pa_y, double Pb_x,
 
 
 	//tangential component
-	double VT_x = V_x - vp*Xhat_x;
-	double VT_y = V_y - vp*Xhat_y;
-	double vt = sqrt(VT_x*VT_x + VT_y*VT_y);
+	double VT_x = V_x - vp * Xhat_x;
+	double VT_y = V_y - vp * Xhat_y;
+	double vt = sqrt(VT_x * VT_x + VT_y * VT_y);
 
-	double rSq = radius*radius;
-	double xMinR = x*x - rSq;
+	double rSq = radius * radius;
+	double xMinR = x * x - rSq;
 	double xMinR_sqrt = sqrt(xMinR);
-	double nominator = sqrt(1 - _eps*_eps);
-	double vtstar = nominator*radius*vp / xMinR_sqrt;
+	double nominator = sqrt(1 - _eps * _eps);
+	double vtstar = nominator * radius * vp / xMinR_sqrt;
 
 	if (vt < vtstar) // compute inv_ttc as usual
 	{
-		double discr = sqrt(rSq*vp*vp - xMinR*vt*vt);
-		double inv_ttc = (x*vp + discr) / xMinR;
+		double discr = sqrt(rSq * vp * vp - xMinR * vt * vt);
+		double inv_ttc = (x * vp + discr) / xMinR;
 		if (inv_ttc > 0)
 		{
-			double mult = _k*pow(inv_ttc, _p - 1)*exp(-(1 / inv_ttc) / _t0);
-			f = mult*inv_ttc;
+			double mult = _k * pow(inv_ttc, _p - 1) * exp(-(1 / inv_ttc) / _t0);
+			f = mult * inv_ttc;
 			if (grad != NULL)
 			{
-				double VP_x = vp*Xhat_x;
-				double VP_y = vp*Xhat_y;
-				double A_x = -X_x + V_x*_dt - vp*_dt*Xhat_x;
-				double A_y = -X_y + V_y*_dt - vp*_dt*Xhat_y;
-				double B_x = (((_dt*vp + x)*VT_x)*xMinR / x - X_x*_dt*vt*vt + rSq*vp*A_x / x) / discr + _dt*VP_x;
-				double B_y = (((_dt*vp + x)*VT_y)*xMinR / x - X_y*_dt*vt*vt + rSq*vp*A_y / x) / discr + _dt*VP_y;
-				grad[0] += -mult / xMinR*((A_x + B_x)*(_p + 1 / (_t0*inv_ttc)) - 2 * _dt*(1 / _t0 + _p*inv_ttc)*X_x);
-				grad[1] += -mult / xMinR*((A_y + B_y)*(_p + 1 / (_t0*inv_ttc)) - 2 * _dt*(1 / _t0 + _p*inv_ttc)*X_y);
+				double VP_x = vp * Xhat_x;
+				double VP_y = vp * Xhat_y;
+				double A_x = -X_x + V_x * _dt - vp * _dt * Xhat_x;
+				double A_y = -X_y + V_y * _dt - vp * _dt * Xhat_y;
+				double B_x = (((_dt * vp + x) * VT_x) * xMinR / x - X_x * _dt * vt * vt + rSq * vp * A_x / x) / discr + _dt * VP_x;
+				double B_y = (((_dt * vp + x) * VT_y) * xMinR / x - X_y * _dt * vt * vt + rSq * vp * A_y / x) / discr + _dt * VP_y;
+				grad[0] += -mult / xMinR * ((A_x + B_x) * (_p + 1 / (_t0 * inv_ttc)) - 2 * _dt * (1 / _t0 + _p * inv_ttc) * X_x);
+				grad[1] += -mult / xMinR * ((A_y + B_y) * (_p + 1 / (_t0 * inv_ttc)) - 2 * _dt * (1 / _t0 + _p * inv_ttc) * X_y);
 			}
 
 		}
 	}
 	else //linear extrapolation from vtstar
 	{
-		double inv_ttc = (x + _eps*radius)*vp / xMinR - nominator / _eps*(vt - vtstar) / xMinR_sqrt;
+		double inv_ttc = (x + _eps * radius) * vp / xMinR - nominator / _eps * (vt - vtstar) / xMinR_sqrt;
 		if (inv_ttc > 0)
 		{
-			double mult = _k*exp(-(1 / inv_ttc) / _t0);
-			f = mult*pow(inv_ttc, _p);
+			double mult = _k * exp(-(1 / inv_ttc) / _t0);
+			f = mult * pow(inv_ttc, _p);
 			if (grad != NULL)
 			{
-				double A_x = -X_x / x + V_x*_dt / x - vp*_dt*Xhat_x / x;
-				double A_y = -X_y / x + V_y*_dt / x - vp*_dt*Xhat_y / x;
-				double B_x = ((_eps*radius + x)*A_x) / xMinR + (nominator*((VT_x*_dt*vp / x + VT_x) / vt + radius*nominator / xMinR_sqrt*(A_x - _dt*vp*X_x / (xMinR)))) / (_eps*xMinR_sqrt) - _dt*X_x / xMinR*(vp*(_eps*radius + x) / xMinR - vp / x + inv_ttc);
-				double B_y = ((_eps*radius + x)*A_y) / xMinR + (nominator*((VT_y*_dt*vp / x + VT_y) / vt + radius*nominator / xMinR_sqrt*(A_y - _dt*vp*X_y / (xMinR)))) / (_eps*xMinR_sqrt) - _dt*X_y / xMinR*(vp*(_eps*radius + x) / xMinR - vp / x + inv_ttc);
-				mult *= -pow(inv_ttc, _p - 1)*(_p + 1 / (_t0*inv_ttc));
-				grad[0] += mult*B_x;
-				grad[1] += mult*B_y;
+				double A_x = -X_x / x + V_x * _dt / x - vp * _dt * Xhat_x / x;
+				double A_y = -X_y / x + V_y * _dt / x - vp * _dt * Xhat_y / x;
+				double B_x = ((_eps * radius + x) * A_x) / xMinR + (nominator * ((VT_x * _dt * vp / x + VT_x) / vt + radius * nominator / xMinR_sqrt * (A_x - _dt * vp * X_x / (xMinR)))) / (_eps * xMinR_sqrt) - _dt * X_x / xMinR * (vp * (_eps * radius + x) / xMinR - vp / x + inv_ttc);
+				double B_y = ((_eps * radius + x) * A_y) / xMinR + (nominator * ((VT_y * _dt * vp / x + VT_y) / vt + radius * nominator / xMinR_sqrt * (A_y - _dt * vp * X_y / (xMinR)))) / (_eps * xMinR_sqrt) - _dt * X_y / xMinR * (vp * (_eps * radius + x) / xMinR - vp / x + inv_ttc);
+				mult *= -pow(inv_ttc, _p - 1) * (_p + 1 / (_t0 * inv_ttc));
+				grad[0] += mult * B_x;
+				grad[1] += mult * B_y;
 			}
 
 		}
@@ -430,7 +556,24 @@ double ImplicitEngine::inverse_ttc_energy(double Pa_x, double Pa_y, double Pb_x,
 
 
 
-double ImplicitEngine::linesearch(const Vector<double> & x0, const Vector<double> & searchDir, const double phi0, const Vector<double>& grad, const double alpha_init)
+double ImplicitEngine::clamp(const double query, const double minBound, const double maxBound) {
+	return std::max(minBound, std::min(query, maxBound));
+}
+
+// Function to find the closest point on the boundary of the rectangle
+// Query point must be outside the rectangle, no safeguards otherwise.
+Vector2D ImplicitEngine::closestPointOnRectangle(const Vector2D& point, const Vector2D& obsCentre, const double xw, const double yw) {
+	Vector2D closestPoint;
+
+	// Clamp each coordinate to the rectangle boundaries
+	closestPoint[0] = clamp(point[0], obsCentre[0] - (xw / 2), obsCentre[0] + (xw / 2));
+	closestPoint[1] = clamp(point[1], obsCentre[1] - (yw / 2), obsCentre[1] + (yw / 2));
+
+	return closestPoint;
+}
+
+
+double ImplicitEngine::linesearch(const Vector<double>& x0, const Vector<double>& searchDir, const double phi0, const Vector<double>& grad, const double alpha_init)
 {
 	double phi_prime = searchDir.dot(grad);
 	// Minimum step length
@@ -454,51 +597,51 @@ double ImplicitEngine::linesearch(const Vector<double> & x0, const Vector<double
 	{
 		if (alpha < alpha_min)
 			return alpha;// _min;
-		x = x0 + alpha*searchDir;
+		x = x0 + alpha * searchDir;
 		const double phi = value(x);
-		if (phi < phi0 + c*alpha*phi_prime) // Sufficient function decrease
+		if (phi < phi0 + c * alpha * phi_prime) // Sufficient function decrease
 			break;
 		else //Backtrack
 		{
 			if (alpha_prev == 0) // First time, quadratic fit 
 			{
-				alpha_next = -(phi_prime*alpha*alpha) / (2.0*(phi - phi0 - phi_prime*alpha)); //minimize [phi phi0 phi_prime]alpha^2 + phi_prime*alpha + phi0
+				alpha_next = -(phi_prime * alpha * alpha) / (2.0 * (phi - phi0 - phi_prime * alpha)); //minimize [phi phi0 phi_prime]alpha^2 + phi_prime*alpha + phi0
 			}
 			else // Subsequent backtracks, cubic fit
 			{
 				//minimize a*alpha^3 + b*alpha^2 + phi_prime*alpha + phi0
-				double rhs1 = phi - phi0 - alpha*phi_prime;
-				double rhs2 = phi_prev - phi0 - alpha_prev*phi_prime;
-				double alphaSq = alpha*alpha;
-				double alpha2Sq = alpha_prev*alpha_prev;
+				double rhs1 = phi - phi0 - alpha * phi_prime;
+				double rhs2 = phi_prev - phi0 - alpha_prev * phi_prime;
+				double alphaSq = alpha * alpha;
+				double alpha2Sq = alpha_prev * alpha_prev;
 				double denominator = alpha - alpha_prev;
 				double a = (rhs1 / alphaSq - rhs2 / alpha2Sq) / denominator;
-				double b = (-alpha_prev*rhs1 / alphaSq + alpha*rhs2 / alpha2Sq) / denominator;
+				double b = (-alpha_prev * rhs1 / alphaSq + alpha * rhs2 / alpha2Sq) / denominator;
 				if (a == 0.0)
-					alpha_next = -phi_prime / (2.0*b);
+					alpha_next = -phi_prime / (2.0 * b);
 				else {
-					const double disc = b*b - 3.0*a*phi_prime;
+					const double disc = b * b - 3.0 * a * phi_prime;
 					if (disc < 0.0)
-						alpha_next = 0.5*alpha;
+						alpha_next = 0.5 * alpha;
 					else if (b <= 0.0)  // minimum of the cubic
-						alpha_next = (-b + sqrt(disc)) / (3.0*a);
+						alpha_next = (-b + sqrt(disc)) / (3.0 * a);
 					else  // minimize roundoff errors
 						alpha_next = -phi_prime / (b + sqrt(disc));
 				}
-				if (alpha_next > 0.5*alpha)
-					alpha_next = 0.5*alpha;  // alpha_new <= 0.5*alpha
+				if (alpha_next > 0.5 * alpha)
+					alpha_next = 0.5 * alpha;  // alpha_new <= 0.5*alpha
 			}
 
 			alpha_prev = alpha;
 			phi_prev = phi;
-			alpha = max(alpha_next, 0.1*alpha);
+			alpha = max(alpha_next, 0.1 * alpha);
 
 		}
 	}
 	return alpha;
 }
 
-void ImplicitEngine::minimize(Vector<double> & x0)
+void ImplicitEngine::minimize(Vector<double>& x0)
 {
 
 	MatrixXd  s = MatrixXd::Zero(_noVars, _window);
@@ -529,16 +672,16 @@ void ImplicitEngine::minimize(Vector<double> & x0)
 		for (int i = 0; i < iter; ++i) {
 			if (--j == -1) j = _window - 1;
 			rho(j) = 1.0 / ((s.col(j)).dot(y.col(j)));
-			alpha(j) = rho(j)*(s.col(j)).dot(q);
-			q = q - alpha(j)*y.col(j);
+			alpha(j) = rho(j) * (s.col(j)).dot(q);
+			q = q - alpha(j) * y.col(j);
 		}
 
 		//L-BFGS second - loop recursion			
-		q = gamma_k*q;
+		q = gamma_k * q;
 		for (int i = 0; i < iter; ++i)
 		{
-			double beta = rho(j)*q.dot(y.col(j));
-			q = q + (alpha(j) - beta)*s.col(j);
+			double beta = rho(j) * q.dot(y.col(j));
+			q = q + (alpha(j) - beta) * s.col(j);
 			if (++j == _window) j = 0;
 		}
 
