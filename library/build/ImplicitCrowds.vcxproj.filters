@@ -42,6 +42,9 @@
     <ClCompile Include="..\src\ImplicitEngine.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ImplicitObstacle.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\AgentInitialParameters.h">
@@ -67,6 +70,12 @@
     </ClInclude>
     <ClInclude Include="..\include\util\Draw.h">
       <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="ImplicitObstacle.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ObstacleParameters.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

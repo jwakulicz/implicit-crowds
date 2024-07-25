@@ -24,6 +24,7 @@
     <ClCompile Include="..\src\lq2D.cpp" />
     <ClCompile Include="..\src\Main.cpp" />
     <ClCompile Include="..\src\Parser.cpp" />
+    <ClCompile Include="ImplicitObstacle.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\AgentInitialParameters.h" />
@@ -34,6 +35,8 @@
     <ClInclude Include="..\include\proximitydatabase\Proximity2D.h" />
     <ClInclude Include="..\include\proximitydatabase\ProximityDatabaseItem.h" />
     <ClInclude Include="..\include\util\Draw.h" />
+    <ClInclude Include="ImplicitObstacle.h" />
+    <ClInclude Include="ObstacleParameters.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{1D82A6B1-8174-4E2C-A028-ED05EFC9F3FD}</ProjectGuid>

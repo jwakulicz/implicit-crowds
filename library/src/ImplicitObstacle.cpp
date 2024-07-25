@@ -2,15 +2,17 @@
 
 ImplicitObstacle::ImplicitObstacle()
 {
-	// initialise obstacle class
+
 }
 
 ImplicitObstacle::~ImplicitObstacle()
 {
-	// iterate through list of obstacles and delete them
+
 }
 
-void ImplicitObstacle::init(const Vector2D position)
+void ImplicitObstacle::init(const ObstacleParameters& initParams)
 {
-	// initialise parameters of the obstacle
+	_position = initParams.position;
+	_xw = initParams.xw;
+	_yw = initParams.yw;
 }

@@ -39,6 +39,7 @@
 
 #pragma once
 #include "ImplicitAgent.h"
+#include "ImplicitObstacle.h"
 #include "Parser.h"
 template <typename T>
 using Vector = Eigen::Matrix<T, Eigen::Dynamic, 1>;
@@ -65,6 +66,8 @@ public:
 	void addAgent(AgentInitialParameters& parameters);
 	/// Read parameters from the Parser where they have been registered
 	void readParameters(const Parser& parser);
+	// add obstacle given parameters
+	void addObstacle(ObstacleParameters& parameters);
 
 	/// @name Get/Set functionality
 	//@{

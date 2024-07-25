@@ -98,6 +98,14 @@ void setupScenario(const string& name)
 			input >> par.radius;
 			_engine->addAgent(par);
 		}
+
+		int numObstacles;
+		input >> numObstacles;
+
+		for (int k = 0; k < numObstacles; ++j)
+		{
+			ObstacleInitialParameters obsPar
+		}
 	}
 	catch (std::exception& e) {
 		std::cerr << "Error reading the scenario file \n" << e.what() << "\n";

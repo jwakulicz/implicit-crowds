@@ -121,6 +121,10 @@ void ImplicitEngine::addAgent(AgentInitialParameters& agentConditions)
 	}
 }
 
+void ImplicitEngine::addObstacle(ObstacleParameters& obstacleParams)
+{
+
+}
 
 void ImplicitEngine::updateSimulation()
 {
