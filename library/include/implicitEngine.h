@@ -131,6 +131,8 @@ protected:
 	SpatialProximityDatabase* _spatialDatabase;
 	/// The agents in the simulation
 	vector<ImplicitAgent* >  _agents;
+	// The obstacles in the simulation
+	vector<ImplicitObstacle* > _obstacles;
 	/// Max cpu threads
 	int _max_threads;
 	/// The total number of agents

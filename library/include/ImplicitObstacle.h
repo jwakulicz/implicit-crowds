@@ -11,6 +11,10 @@ public:
 	bool isObstacle() { return true; }
 	// returns the position of the obstacle
 	Vector2D position() { return _position; }
+	// return x width of the obstacle
+	double xw() const { return _xw; }
+	// return y width of the obstacle
+	double yw() const { return _yw; }
 
 
 protected:

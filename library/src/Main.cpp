@@ -99,12 +99,20 @@ void setupScenario(const string& name)
 			_engine->addAgent(par);
 		}
 
+		// default parameters for obstacles
 		int numObstacles;
 		input >> numObstacles;
+		ObstacleParameters obsPar;
+		obsPar.gid = nrAgents;
 
-		for (int k = 0; k < numObstacles; ++j)
+		for (int k = 0; k < numObstacles; ++k)
 		{
-			ObstacleInitialParameters obsPar
+			input >> obsPar.id;
+			input >> obsPar.position.x();
+			input >> obsPar.position.y();
+			input >> obsPar.xw;
+			input >> obsPar.yw;
+			_engine->addObstacle(obsPar);
 		}
 	}
 	catch (std::exception& e) {

@@ -35,10 +35,10 @@
 //double x_obstacle2 = 0.0f;
 //double y_obstacle2 = -1.5f;
 
-double xw = 1.0f;
-double yw = 1.0f;
-double x_obstacle1 = 0.0f;
-double y_obstacle1 = 0.0f;
+//double xw = 1.0f;
+//double yw = 1.0f;
+//double x_obstacle1 = 0.0f;
+//double y_obstacle1 = 0.0f;
 
 
 ImplicitEngine::ImplicitEngine()
@@ -46,6 +46,7 @@ ImplicitEngine::ImplicitEngine()
 	_spatialDatabase = NULL;
 	_max_threads = omp_get_max_threads();
 	_noAgents = 0;
+	_noObstacles = 0;
 }
 
 ImplicitEngine::~ImplicitEngine()
@@ -56,6 +57,13 @@ ImplicitEngine::~ImplicitEngine()
 		delete* it;
 		*it = 0x0;
 
+	}
+
+	// for a vector of pointers to obstacles set up an iterator to access them
+	for (vector<ImplicitObstacle*>::iterator it = _obstacles.begin(); it != _obstacles.end(); ++it)
+	{
+		delete* it;
+		*it = 0x0;
 	}
 
 	if (_spatialDatabase != NULL)
@@ -123,7 +131,13 @@ void ImplicitEngine::addAgent(AgentInitialParameters& agentConditions)
 
 void ImplicitEngine::addObstacle(ObstacleParameters& obstacleParams)
 {
-
+	ImplicitObstacle* newObstacle = new ImplicitObstacle();
+	if (newObstacle != NULL) {
+		obstacleParams.id = _noObstacles;
+		newObstacle->init(obstacleParams);
+		_obstacles.push_back(newObstacle);
+		++_noObstacles;
+	}
 }
 
 void ImplicitEngine::updateSimulation()
@@ -244,41 +258,31 @@ double ImplicitEngine::value(const VectorXd& vNew)
 				}
 
 			}
+			// for obstacle in obstacles
+			// get x y position, get xw and yw
+			for (vector<ImplicitObstacle*>::iterator it = _obstacles.begin(); it != _obstacles.end(); it++)
 			{
 				double radius = _radius[i]; //+ radius_obstacle1;
 				double distance_energy = 0;
 				double g[] = { 0, 0 };
-				if (min_distance_energy(_pos[i], _pos[id_y], x_obstacle1, y_obstacle1,
+				double xObs = (*it)->position().x();
+				double yObs = (*it)->position().y();
+				double xw = (*it)->xw();
+				double yw = (*it)->yw();
+
+				if (min_distance_energy(_pos[i], _pos[id_y], xObs, yObs,
 					vNew[i], vNew[id_y], 0.0f, 0.0f, radius, distance_energy, g, true, xw, yw))
 					exit = true;
 				else
 				{
 					// compute the ttc energy
-					double ttc_energy = inverse_ttc_energy(_posNew[i], _posNew[id_y], x_obstacle1, y_obstacle1,
+					double ttc_energy = inverse_ttc_energy(_posNew[i], _posNew[id_y], xObs, yObs,
 						vNew[i], vNew[id_y], 0.0f, 0.0f, radius, g, true, xw, yw);
 
 					f += /*2**/ttc_energy;
 					f += /*2**/distance_energy;
 				}
 			}
-
-			//{
-			//	double radius = _radius[i] + radius_obstacle2;
-			//	double distance_energy = 0;
-			//	double g[] = { 0, 0 };
-			//	if (min_distance_energy(_pos[i], _pos[id_y], x_obstacle2, y_obstacle2,
-			//		vNew[i], vNew[id_y], 0.0, 0.0, radius, distance_energy, g))
-			//		exit = true;
-			//	else
-			//	{
-			//		// compute the ttc energy
-			//		double ttc_energy = inverse_ttc_energy(_posNew[i], _posNew[id_y], x_obstacle2, y_obstacle2,
-			//			vNew[i], vNew[id_y], 0.0, 0.0, radius, g);
-
-			//		f += /*2**/ttc_energy;
-			//		f += /*2**/distance_energy;
-			//	}
-			//}
 		}
 	}
 

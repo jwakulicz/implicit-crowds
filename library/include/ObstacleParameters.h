@@ -10,6 +10,9 @@ struct ObstacleParameters {
 	Vector2D position;
 	double xw;
 	double yw;
+	// group ID for Callisto visualizer
 	int gid;
+	// obstacle ID for Callisto visualizer
+	int id;
 };
 
