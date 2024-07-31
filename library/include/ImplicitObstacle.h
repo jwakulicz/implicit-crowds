@@ -10,20 +10,22 @@ public:
 	// returns true
 	bool isObstacle() { return true; }
 	// returns the position of the obstacle
-	Vector2D position() { return _position; }
+	Vector2D position() const { return _position; }
 	// return x width of the obstacle
-	double xw() const { return _xw; }
+	float xw() const { return _xw; }
 	// return y width of the obstacle
-	double yw() const { return _yw; }
+	float yw() const { return _yw; }
+	// return the global id
+	int getGlobalId() const { return _gid; }
 
 
 protected:
 	// the position of the box
 	Vector2D _position;
 	// the x width of the box
-	double _xw;
+	float _xw;
 	// the y width of the box
-	double _yw;
+	float _yw;
 	// id of the obstacle
 	int _id;
 	// group id

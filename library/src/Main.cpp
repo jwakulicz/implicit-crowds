@@ -130,11 +130,22 @@ void draw()
 	VisualizerCallisto::resetAnimation();
 	double animation_step = dt;
 	const vector<ImplicitAgent*>& agents = _engine->getAgents();
-	//draw box obstacle
-	int gobs = VisualizerCallisto::createGroup("obstacles", VisualizerCallisto::getDrawingID());
-	int obsId = VisualizerCallisto::createGroup("obstacle", gobs);
-	//VisualizerCallisto::createCylinderCharacter(obsId, 1.0f, .5f, "obstacle", false,-1,0.0f,1.5f);
-	VisualizerCallisto::createBox(obsId, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 128, 128, 128);
+	const vector<ImplicitObstacle*>& obstacles = _engine->getObstacles();
+	int gobs = VisualizerCallisto::createGroup("obstacles", obstacles[0]->getGlobalId());
+
+	//draw box obstacles
+	for (unsigned int k = 0; k < obstacles.size(); ++k)
+	{
+		//constant pointer to obstacle in the list
+		const ImplicitObstacle* obstacle = obstacles[k];
+		int obsId = VisualizerCallisto::createGroup("obstacle", gobs);
+		VisualizerCallisto::createBox(obsId, obstacle->xw(), obstacle->yw(), 1.0f, obstacle->position().x(), obstacle->position().y(), 0.0f);
+	}
+
+	//int gobs = VisualizerCallisto::createGroup("obstacles", VisualizerCallisto::getDrawingID());
+	//int obsId = VisualizerCallisto::createGroup("obstacle", gobs);
+	////VisualizerCallisto::createCylinderCharacter(obsId, 1.0f, .5f, "obstacle", false,-1,0.0f,1.5f);
+	//VisualizerCallisto::createBox(obsId, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 128, 128, 128);
 
 	for (unsigned int j = 0; j < agents.size(); ++j)
 	{

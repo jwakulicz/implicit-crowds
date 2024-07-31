@@ -21,22 +21,22 @@
   <ItemGroup>
     <ClCompile Include="..\src\ImplicitAgent.cpp" />
     <ClCompile Include="..\src\ImplicitEngine.cpp" />
+    <ClCompile Include="..\src\ImplicitObstacle.cpp" />
     <ClCompile Include="..\src\lq2D.cpp" />
     <ClCompile Include="..\src\Main.cpp" />
     <ClCompile Include="..\src\Parser.cpp" />
-    <ClCompile Include="ImplicitObstacle.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\AgentInitialParameters.h" />
     <ClInclude Include="..\include\ImplicitAgent.h" />
     <ClInclude Include="..\include\implicitEngine.h" />
+    <ClInclude Include="..\include\ImplicitObstacle.h" />
+    <ClInclude Include="..\include\ObstacleParameters.h" />
     <ClInclude Include="..\include\Parser.h" />
     <ClInclude Include="..\include\proximitydatabase\lq2d.h" />
     <ClInclude Include="..\include\proximitydatabase\Proximity2D.h" />
     <ClInclude Include="..\include\proximitydatabase\ProximityDatabaseItem.h" />
     <ClInclude Include="..\include\util\Draw.h" />
-    <ClInclude Include="ImplicitObstacle.h" />
-    <ClInclude Include="ObstacleParameters.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{1D82A6B1-8174-4E2C-A028-ED05EFC9F3FD}</ProjectGuid>

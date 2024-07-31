@@ -8,8 +8,8 @@ typedef Eigen::Matrix<double, 2, 1, Eigen::DontAlign> Vector2D; // do this to av
   */
 struct ObstacleParameters {
 	Vector2D position;
-	double xw;
-	double yw;
+	float xw;
+	float yw;
 	// group ID for Callisto visualizer
 	int gid;
 	// obstacle ID for Callisto visualizer

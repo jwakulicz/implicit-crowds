@@ -129,6 +129,7 @@ void ImplicitEngine::addAgent(AgentInitialParameters& agentConditions)
 	}
 }
 
+// pass a reference to an existing obstacleParams variable to this function
 void ImplicitEngine::addObstacle(ObstacleParameters& obstacleParams)
 {
 	ImplicitObstacle* newObstacle = new ImplicitObstacle();
@@ -346,18 +347,23 @@ double ImplicitEngine::value(const VectorXd& vNew, VectorXd& grad)
 				}
 			}
 
+			for (vector<ImplicitObstacle*>::iterator it = _obstacles.begin(); it != _obstacles.end(); it++)
 			{
-				//distance between centres
 				double radius = _radius[i]; //+ radius_obstacle1;
 				double distance_energy = 0;
 				double g[] = { 0, 0 };
-				if (min_distance_energy(_pos[i], _pos[id_y], x_obstacle1, y_obstacle1,
+				double xObs = (*it)->position().x();
+				double yObs = (*it)->position().y();
+				double xw = (*it)->xw();
+				double yw = (*it)->yw();
+
+				if (min_distance_energy(_pos[i], _pos[id_y], xObs, yObs,
 					vNew[i], vNew[id_y], 0.0, 0.0, radius, distance_energy, g, true, xw, yw))
 					exit = true;
 				else
 				{
 					// compute the ttc energy
-					double ttc_energy = inverse_ttc_energy(_posNew[i], _posNew[id_y], x_obstacle1, y_obstacle1,
+					double ttc_energy = inverse_ttc_energy(_posNew[i], _posNew[id_y], xObs, yObs,
 						vNew[i], vNew[id_y], 0.0, 0.0, radius, g, true, xw, yw);
 
 					f += /*2**/ttc_energy;
@@ -570,7 +576,7 @@ double ImplicitEngine::clamp(const double query, const double minBound, const do
 
 // Function to find the closest point on the boundary of the rectangle
 // Query point must be outside the rectangle, no safeguards otherwise.
-Vector2D ImplicitEngine::closestPointOnRectangle(const Vector2D& point, const Vector2D& obsCentre, const double xw, const double yw) {
+Vector2D ImplicitEngine::closestPointOnRectangle(const Vector2D& point, const Vector2D& obsCentre, const double& xw, const double& yw) {
 	Vector2D closestPoint;
 
 	// Clamp each coordinate to the rectangle boundaries

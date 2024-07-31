@@ -42,6 +42,14 @@ void ImplicitAgent::destroy()
 	}
 }
 
+// arguments:
+// reference to a struct AgentInitialParameters variable initialConditions, avoiding making a copy
+// this is literally passing the variable itself to the function. 
+// const enforces that initialConditions cannot be changed in this function.
+// pointer to object SpatialProximityDatabase variable pd. so the address is passed to this function.
+// must dereference to access the object itself.
+// const after * means the pointer cannot be changed to point to a different object in this function,
+// but the object itself can be changed in here.
 void ImplicitAgent::init(const AgentInitialParameters& initialConditions, SpatialProximityDatabase* const pd)
 {
 	// initialize the agent based on the initial conditions
@@ -58,6 +66,7 @@ void ImplicitAgent::init(const AgentInitialParameters& initialConditions, Spatia
 	_enabled = true;
 
 	//add to the database
+	//-> dereferences and then accesses member function in a single syntax
 	_proximityToken = pd->allocateToken(this);
 	// notify proximity database that our position has changed
 	_proximityToken->updateForNewPosition(_position);
@@ -104,6 +113,11 @@ void ImplicitAgent::update(double dt)
 	_orientations.push_back(_orientation);
 }
 
+//arguments:
+// a vector of pointers to proximity database objects
+// <> indicates the type of elements in the vector
+// & afterwards indicates that a reference to an existing vector of pd pointers is
+// being based to the function. avoids creating a new one or copying
 void ImplicitAgent::findNeighbors(double neighborDist, vector<ProximityDatabaseItem*>& nn)
 {
 	_proximityToken->findNeighbors(_position, neighborDist, nn);

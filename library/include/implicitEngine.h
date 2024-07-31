@@ -73,8 +73,12 @@ public:
 	//@{
 	/// Returns the list of agents in the simulation. 
 	const vector<ImplicitAgent*>& getAgents() const { return _agents; }
+	/// Returns the list of obstacles in the simulation.
+	const vector<ImplicitObstacle*>& getObstacles() const { return _obstacles; }
 	///Returns the corresponding agent given its id
 	ImplicitAgent* getAgent(int id) const { return _agents[id]; }
+	/// Returns the obstacle given its id
+	ImplicitObstacle* getObstacle(int id) const { return _obstacles[id]; }
 	/// Returns the time step of the simulation. 
 	double getTimeStep() const { return _dt; }
 	/// Sets the time step of the simulation.
@@ -113,7 +117,7 @@ protected:
 	/// Clamps a point to the boundary of a box
 	inline double clamp(const double query, const double minBound, const double maxBound);
 	/// Returns the closest point on boundary of box
-	inline Vector2D closestPointOnRectangle(const Vector2D& point, const Vector2D& boxCentre, const double xw, const double yw);
+	inline Vector2D closestPointOnRectangle(const Vector2D& point, const Vector2D& boxCentre, const double& xw, const double& yw);
 	//@}
 
 protected:
