@@ -110,6 +110,8 @@ void ImplicitEngine::readParameters(const Parser& parser)
 
 bool ImplicitEngine::endSimulation()
 {
+	//std::cout << "reached goals " << _reachedGoals << std::endl;
+	//std::cout << "current iteration no. " << _iteration << std::endl;
 	return _reachedGoals || _iteration >= _maxSteps;
 }
 
@@ -159,7 +161,9 @@ void ImplicitEngine::updateSimulation()
 	if (_reachedGoals) return;
 
 	this->initializeProblem();
+	//std::cout << "before minimize step " << _vNew << std::endl;
 	this->minimize(_vNew);
+	//std::cout << "after minimize step " << _vNew << std::endl;
 	this->finalizeProblem();
 
 	for (unsigned int i = 0; i < _noAgents; ++i)
@@ -196,6 +200,7 @@ void ImplicitEngine::initializeProblem()
 			_vel[id_y] = _agents[i]->velocity().y();
 			_vGoal[counter] = _agents[i]->vPref().x();
 			_vGoal[id_y] = _agents[i]->vPref().y();
+			//std::cout << "goal velocity " << _vGoal[counter] << _vGoal[id_y] << std::endl;
 			_radius[counter] = _agents[i]->radius();
 			_agents[i]->setActiveID(counter);
 			_nn[counter].clear();
@@ -261,6 +266,8 @@ double ImplicitEngine::value(const VectorXd& vNew)
 			}
 			// for obstacle in obstacles
 			// get x y position, get xw and yw
+			double av_ttc = 0;
+			double av_distance_energy = 0;
 			for (vector<ImplicitObstacle*>::iterator it = _obstacles.begin(); it != _obstacles.end(); it++)
 			{
 				double radius = _radius[i]; //+ radius_obstacle1;
@@ -279,11 +286,13 @@ double ImplicitEngine::value(const VectorXd& vNew)
 					// compute the ttc energy
 					double ttc_energy = inverse_ttc_energy(_posNew[i], _posNew[id_y], xObs, yObs,
 						vNew[i], vNew[id_y], 0.0f, 0.0f, radius, g, true, xw, yw);
-
-					f += /*2**/ttc_energy;
-					f += /*2**/distance_energy;
+					
+					av_ttc += ttc_energy;
+					av_distance_energy += distance_energy;
 				}
 			}
+			f += /*2**/av_ttc / _obstacles.size();
+			f += /*2**/av_distance_energy / _obstacles.size();
 		}
 	}
 
@@ -316,7 +325,7 @@ double ImplicitEngine::value(const VectorXd& vNew, VectorXd& grad)
 				const ImplicitAgent* other = static_cast<ImplicitAgent*>(_nn[i][j]);
 				int other_id = other->activeID();
 				//int other_id = this->_mappedIds[other->id()];
-				if (other_id > i)
+				if (other_id != i)
 				{
 					size_t other_id_y = other_id + _activeAgents;
 					double radius = _radius[i] + _radius[other_id];
@@ -331,24 +340,27 @@ double ImplicitEngine::value(const VectorXd& vNew, VectorXd& grad)
 						double ttc_energy = inverse_ttc_energy(_posNew[i], _posNew[id_y], _posNew[other_id], _posNew[other_id_y],
 							vNew[i], vNew[id_y], vNew[other_id], vNew[other_id_y], radius, g);
 
-						//if (other_id > i) { // do not add the energy twice!  
-						f += ttc_energy;
-						f += distance_energy;
-						//}
+						if (other_id > i) { // do not add the energy twice!  
+							f += ttc_energy;
+							f += distance_energy;
+						}
 
 						//add the gradients 
 						//In theory we could set the gradient of the neihbor to be the opposite of grad, but assuming openmp is used
 						//it's faster to recompute the energy and does not lead to any shared violations
 						grad[i] += g[0];
 						grad[id_y] += g[1];
-						grad[other_id] -= g[0];
-						grad[other_id_y] -= g[1];
+						//grad[other_id] -= g[0];
+						//grad[other_id_y] -= g[1];
 					}
 				}
 			}
-
+			double av_g[] = { 0,0 };
+			double av_distance_energy = 0;
+			double av_ttc = 0;
 			for (vector<ImplicitObstacle*>::iterator it = _obstacles.begin(); it != _obstacles.end(); it++)
 			{
+				// maybe bloat the obstacles?
 				double radius = _radius[i]; //+ radius_obstacle1;
 				double distance_energy = 0;
 				double g[] = { 0, 0 };
@@ -359,47 +371,33 @@ double ImplicitEngine::value(const VectorXd& vNew, VectorXd& grad)
 
 				if (min_distance_energy(_pos[i], _pos[id_y], xObs, yObs,
 					vNew[i], vNew[id_y], 0.0, 0.0, radius, distance_energy, g, true, xw, yw))
+				{
 					exit = true;
+					std::cout << exit << std::endl;
+				}
 				else
 				{
 					// compute the ttc energy
 					double ttc_energy = inverse_ttc_energy(_posNew[i], _posNew[id_y], xObs, yObs,
 						vNew[i], vNew[id_y], 0.0, 0.0, radius, g, true, xw, yw);
 
-					f += /*2**/ttc_energy;
-					f += /*2**/distance_energy;
+					av_ttc += ttc_energy;
+					av_distance_energy += distance_energy;
 
 					//add the gradients 
 					//In theory we could set the gradient of the neihbor to be the opposite of grad, but assuming openmp is used
 					//it's faster to recompute the energy and does not lead to any shared violations
-					grad[i] += /*2**/g[0];
-					grad[id_y] += /*2**/g[1];
+					av_g[0] += g[0];
+					av_g[1] += g[1];
+					//grad[i] += /*2**/g[0];
+					//grad[id_y] += /*2**/g[1];
 				}
 			}
+			f += /*2**/av_ttc / _obstacles.size();
+			f += /*2**/av_distance_energy / _obstacles.size();
+			grad[i] += /*2**/av_g[0] / _obstacles.size();
+			grad[id_y] += /*2**/av_g[1] / _obstacles.size();
 
-			//{
-			//	double radius = _radius[i] + radius_obstacle2;
-			//	double distance_energy = 0;
-			//	double g[] = { 0, 0 };
-			//	if (min_distance_energy(_pos[i], _pos[id_y], x_obstacle2, y_obstacle2,
-			//		vNew[i], vNew[id_y], 0.0, 0.0, radius, distance_energy, g))
-			//		exit = true;
-			//	else
-			//	{
-			//		// compute the ttc energy
-			//		double ttc_energy = inverse_ttc_energy(_posNew[i], _posNew[id_y], x_obstacle2, y_obstacle2,
-			//			vNew[i], vNew[id_y], 0.0, 0.0, radius, g);
-
-			//		f += /*2**/ttc_energy;
-			//		f += /*2**/distance_energy;
-
-			//		//add the gradients 
-			//		//In theory we could set the gradient of the neihbor to be the opposite of grad, but assuming openmp is used
-			//		//it's faster to recompute the energy and does not lead to any shared violations
-			//		grad[i] += /*2**/g[0];
-			//		grad[id_y] += /*2**/g[1];
-			//	}
-			//}
 		}
 	}
 
@@ -579,7 +577,6 @@ double ImplicitEngine::clamp(const double query, const double minBound, const do
 Vector2D ImplicitEngine::closestPointOnRectangle(const Vector2D& point, const Vector2D& obsCentre, const double& xw, const double& yw) {
 	Vector2D closestPoint;
 
-	// Clamp each coordinate to the rectangle boundaries
 	closestPoint[0] = clamp(point[0], obsCentre[0] - (xw / 2), obsCentre[0] + (xw / 2));
 	closestPoint[1] = clamp(point[1], obsCentre[1] - (yw / 2), obsCentre[1] + (yw / 2));
 

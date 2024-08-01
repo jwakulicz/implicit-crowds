@@ -142,11 +142,6 @@ void draw()
 		VisualizerCallisto::createBox(obsId, obstacle->xw(), obstacle->yw(), 1.0f, obstacle->position().x(), obstacle->position().y(), 0.0f);
 	}
 
-	//int gobs = VisualizerCallisto::createGroup("obstacles", VisualizerCallisto::getDrawingID());
-	//int obsId = VisualizerCallisto::createGroup("obstacle", gobs);
-	////VisualizerCallisto::createCylinderCharacter(obsId, 1.0f, .5f, "obstacle", false,-1,0.0f,1.5f);
-	//VisualizerCallisto::createBox(obsId, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 128, 128, 128);
-
 	for (unsigned int j = 0; j < agents.size(); ++j)
 	{
 		const ImplicitAgent* agent = agents[j];
