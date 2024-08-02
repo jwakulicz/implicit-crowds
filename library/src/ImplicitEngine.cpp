@@ -80,7 +80,7 @@ void ImplicitEngine::init(double xRange, double yRange, int xCells, int yCells)
 	_globalTime = 0;
 	_spatialDatabase = new SpatialProximityDatabase(VectorXd::Zero(2, 1), Vector2D(xRange, yRange), Vector2D(xCells, yCells));
 	//some defult paramaters, can be easily set via a file and calling readParameters
-	_k = 1.5;
+	_k = 2;
 	_p = 2.;
 	_t0 = 3.;
 	_ksi = 2.;
@@ -287,12 +287,14 @@ double ImplicitEngine::value(const VectorXd& vNew)
 					double ttc_energy = inverse_ttc_energy(_posNew[i], _posNew[id_y], xObs, yObs,
 						vNew[i], vNew[id_y], 0.0f, 0.0f, radius, g, true, xw, yw);
 					
-					av_ttc += ttc_energy;
-					av_distance_energy += distance_energy;
+					/*av_ttc += ttc_energy;
+					av_distance_energy += distance_energy;*/
+					f += ttc_energy;
+					f += distance_energy;
 				}
 			}
-			f += /*2**/av_ttc / _obstacles.size();
-			f += /*2**/av_distance_energy / _obstacles.size();
+			//f += /*2**/av_ttc / _obstacles.size();
+			//f += /*2**/av_distance_energy / _obstacles.size();
 		}
 	}
 
@@ -373,7 +375,7 @@ double ImplicitEngine::value(const VectorXd& vNew, VectorXd& grad)
 					vNew[i], vNew[id_y], 0.0, 0.0, radius, distance_energy, g, true, xw, yw))
 				{
 					exit = true;
-					std::cout << exit << std::endl;
+					//std::cout << exit << std::endl;
 				}
 				else
 				{
@@ -381,22 +383,24 @@ double ImplicitEngine::value(const VectorXd& vNew, VectorXd& grad)
 					double ttc_energy = inverse_ttc_energy(_posNew[i], _posNew[id_y], xObs, yObs,
 						vNew[i], vNew[id_y], 0.0, 0.0, radius, g, true, xw, yw);
 
-					av_ttc += ttc_energy;
-					av_distance_energy += distance_energy;
+					//av_ttc += ttc_energy;
+					//av_distance_energy += distance_energy;
+					f += ttc_energy;
+					f += distance_energy;
 
 					//add the gradients 
 					//In theory we could set the gradient of the neihbor to be the opposite of grad, but assuming openmp is used
 					//it's faster to recompute the energy and does not lead to any shared violations
-					av_g[0] += g[0];
-					av_g[1] += g[1];
-					//grad[i] += /*2**/g[0];
-					//grad[id_y] += /*2**/g[1];
+					//av_g[0] += g[0];
+					//av_g[1] += g[1];
+					grad[i] += /*2**/g[0];
+					grad[id_y] += /*2**/g[1];
 				}
 			}
-			f += /*2**/av_ttc / _obstacles.size();
-			f += /*2**/av_distance_energy / _obstacles.size();
-			grad[i] += /*2**/av_g[0] / _obstacles.size();
-			grad[id_y] += /*2**/av_g[1] / _obstacles.size();
+			//f += /*2**/av_ttc / _obstacles.size();
+			//f += /*2**/av_distance_energy / _obstacles.size();
+			//grad[i] += /*2**/av_g[0] / _obstacles.size();
+			//grad[id_y] += /*2**/av_g[1] / _obstacles.size();
 
 		}
 	}
