@@ -188,6 +188,27 @@ void draw()
 	}
 }
 
+void write(string& scenarioFilename) {
+	const vector<ImplicitAgent*>& agents = _engine->getAgents();
+	string outFile = scenarioFilename.erase(scenarioFilename.find(".csv"), 4);
+	std::ofstream of;
+	of.open(outFile + "Output.csv");
+
+	for (unsigned int j = 0; j < agents.size(); ++j)
+	{
+		const ImplicitAgent* agent = agents[j];
+		vector<Vector2D> path = agent->path();
+		int nrPts = (int)path.size();
+		for (int i = 0; i < nrPts; ++i)
+		{
+			of << (float)path[i].x() << "," << (float)path[i].y() << ",";
+		}
+		of << '\n';
+	}
+
+	of.close();
+}
+
 
 int main(int argc, char** argv)
 {
@@ -232,6 +253,9 @@ int main(int argc, char** argv)
 
 	// animate agents
 	draw();
+
+	// write out
+	write(scenarioFilename);
 
 	//press a key to terminate
 	while (!_kbhit())
