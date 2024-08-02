@@ -270,7 +270,7 @@ double ImplicitEngine::value(const VectorXd& vNew)
 			double av_distance_energy = 0;
 			for (vector<ImplicitObstacle*>::iterator it = _obstacles.begin(); it != _obstacles.end(); it++)
 			{
-				double radius = _radius[i]; //+ radius_obstacle1;
+				double radius = _radius[i] + 0.25f; //+ radius_obstacle1;
 				double distance_energy = 0;
 				double g[] = { 0, 0 };
 				double xObs = (*it)->position().x();
@@ -363,7 +363,7 @@ double ImplicitEngine::value(const VectorXd& vNew, VectorXd& grad)
 			for (vector<ImplicitObstacle*>::iterator it = _obstacles.begin(); it != _obstacles.end(); it++)
 			{
 				// maybe bloat the obstacles?
-				double radius = _radius[i]; //+ radius_obstacle1;
+				double radius = _radius[i] + 0.25f; //+ radius_obstacle1;
 				double distance_energy = 0;
 				double g[] = { 0, 0 };
 				double xObs = (*it)->position().x();
