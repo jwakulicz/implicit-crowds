@@ -86,7 +86,7 @@ void ImplicitEngine::init(double xRange, double yRange, int xCells, int yCells)
 	_ksi = 2.;
 	_eps = 0.2;
 	_eta = 0.01;
-	_neighborDist = 10.;
+	_neighborDist = 3.;
 	_newtonIter = 100;
 	_window = 5;
 	_eps_x = 1e-5;

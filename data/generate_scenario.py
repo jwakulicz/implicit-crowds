@@ -10,8 +10,8 @@ def generate_locations(x_bounds, y_bounds, num_locations):
 def generate_obstacles(num_obstacles, bndry_x, bndry_y):
     """num_obstacles needs to be a square number, want to always make a square grid"""
     n = int(np.sqrt(num_obstacles))
-    x = np.linspace(bndry_x[0], bndry_x[1], n)
-    y = np.linspace(bndry_y[0], bndry_y[1], n)
+    x = np.linspace(bndry_x[0] / 2, bndry_x[1] / 2, n)
+    y = np.linspace(bndry_y[0] / 2, bndry_y[1] / 2, n)
 
     x_grid, y_grid = np.meshgrid(x,y)
 
@@ -28,18 +28,18 @@ def define_obstacle_row(id, location, x_width, y_width):
 bndry_x = [-10,10]
 bndry_y = [-10, 10]
 
-num_agents = 100
-agent_starts = generate_locations([bndry_x[0],bndry_x[0]], [bndry_y[0], bndry_y[1]], num_agents)
+num_agents = 10
+agent_starts = generate_locations([bndry_x[0],bndry_x[0]], [bndry_y[0]/2, bndry_y[1]/2], num_agents)
 agent_ends = generate_locations([bndry_x[1],bndry_x[1]], [bndry_y[0], bndry_y[1]], num_agents)
 goal_vel = 1.0
 radius = 0.25
 
-num_obstacles = 4
+num_obstacles = 9
 obstacle_locs = generate_obstacles(num_obstacles, bndry_x, bndry_y)
 obs_x_width = 1
 obs_y_width = 1
 
-scenario_filename = 'grid4.csv'
+scenario_filename = 'grid9.csv'
 
 with open(scenario_filename, 'w', newline='') as csvfile:
     csvwriter = csv.writer(csvfile, delimiter=' ')

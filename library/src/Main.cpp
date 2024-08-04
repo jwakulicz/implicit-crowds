@@ -139,7 +139,7 @@ void draw()
 		//constant pointer to obstacle in the list
 		const ImplicitObstacle* obstacle = obstacles[k];
 		int obsId = VisualizerCallisto::createGroup("obstacle", gobs);
-		VisualizerCallisto::createBox(obsId, obstacle->xw(), obstacle->yw(), 1.0f, obstacle->position().x(), obstacle->position().y(), 0.0f);
+		VisualizerCallisto::createBox(obsId, obstacle->xw(), obstacle->yw(), 1.0f, obstacle->position().x(), obstacle->position().y(), 0.5f);
 	}
 
 	for (unsigned int j = 0; j < agents.size(); ++j)
