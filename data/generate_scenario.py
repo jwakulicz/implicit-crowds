@@ -1,7 +1,9 @@
 import numpy as np
 import csv
+import random
 
 def generate_locations(x_bounds, y_bounds, num_locations, start=False):
+    num_locations = int(num_locations)
     x_vals = np.random.uniform(x_bounds[0], x_bounds[1], num_locations)
     if start:
         y_vals = np.linspace(y_bounds[0], y_bounds[1], num_locations)
@@ -28,23 +30,25 @@ def define_agent_row(id, start, goal, goal_vel, radius):
 def define_obstacle_row(id, location, x_width, y_width):
     return [int(id), location[0], location[1], x_width, y_width]
 
-
 if __name__ == '__main__':
     bndry_x = [-10,10]
     bndry_y = [-10, 10]
 
-    num_agents = 10
+    num_agents = 16
     agent_starts = generate_locations([bndry_x[0],bndry_x[0]], [bndry_y[0]/2, bndry_y[1]/2], num_agents, start=True)
-    agent_ends = generate_locations([bndry_x[1],bndry_x[1]], [bndry_y[0], bndry_y[1]], num_agents)
+    random.shuffle(agent_starts)
+    agent_ends_bottom = generate_locations([bndry_x[1],bndry_x[1]], [-6,-4], num_agents / 2)
+    agent_ends_top = generate_locations([bndry_x[1],bndry_x[1]], [4,6], num_agents / 2)
+    agent_ends = np.vstack((agent_ends_bottom, agent_ends_top))
     goal_vel = 1.0
     radius = 0.25
 
-    num_obstacles = 4
+    num_obstacles = 9
     obstacle_locs = generate_obstacle_grid(num_obstacles, bndry_x, bndry_y)
     obs_x_width = 1
     obs_y_width = 1
 
-    scenario_filename = 'grid4.csv'
+    scenario_filename = 'exits.csv'
 
     with open(scenario_filename, 'w', newline='') as csvfile:
         csvwriter = csv.writer(csvfile, delimiter=' ')
