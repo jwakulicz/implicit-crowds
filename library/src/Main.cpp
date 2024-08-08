@@ -191,8 +191,12 @@ void draw()
 void write(string& scenarioFilename) {
 	const vector<ImplicitAgent*>& agents = _engine->getAgents();
 	string outFile = scenarioFilename.erase(scenarioFilename.find(".csv"), 4);
-	std::ofstream of;
-	of.open(outFile + "Output.csv");
+	std::ofstream of(outFile + "Output.csv", std::ios_base::app);
+
+	if (!of) {
+		std::cerr << "Error opening file" << std::endl;
+	}
+	//of.open(outFile + "Output.csv");
 
 	for (unsigned int j = 0; j < agents.size(); ++j)
 	{

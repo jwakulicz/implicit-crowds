@@ -48,7 +48,7 @@ if __name__ == '__main__':
     obs_x_width = 1
     obs_y_width = 1
 
-    scenario_filename = 'exits.csv'
+    scenario_filename = '../../data/exits.csv'
 
     with open(scenario_filename, 'w', newline='') as csvfile:
         csvwriter = csv.writer(csvfile, delimiter=' ')
