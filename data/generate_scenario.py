@@ -34,21 +34,27 @@ if __name__ == '__main__':
     bndry_x = [-10,10]
     bndry_y = [-10, 10]
 
-    num_agents = 16
-    agent_starts = generate_locations([bndry_x[0],bndry_x[0]], [bndry_y[0]/2, bndry_y[1]/2], num_agents, start=True)
+    num_agents = 6
+    agent_starts = generate_locations([bndry_x[0],bndry_x[0]], [bndry_y[0]/3, bndry_y[1]/3], num_agents, start=True)
     random.shuffle(agent_starts)
-    agent_ends_bottom = generate_locations([bndry_x[1],bndry_x[1]], [-6,-4], num_agents / 2)
-    agent_ends_top = generate_locations([bndry_x[1],bndry_x[1]], [4,6], num_agents / 2)
+    agent_ends_bottom = generate_locations([bndry_x[1],bndry_x[1]], [-4,-2], num_agents / 2)
+    agent_ends_top = generate_locations([bndry_x[1],bndry_x[1]], [2,4], num_agents / 2)
     agent_ends = np.vstack((agent_ends_bottom, agent_ends_top))
+    # agent_starts = generate_locations([bndry_x[0], bndry_x[0]], [-1,1], num_agents)
+    # agent_ends = generate_locations([bndry_x[1],bndry_x[1]], [-1,1], num_agents)
     goal_vel = 1.0
     radius = 0.25
 
-    num_obstacles = 9
-    obstacle_locs = generate_obstacle_grid(num_obstacles, bndry_x, bndry_y)
-    obs_x_width = 1
-    obs_y_width = 1
+    # num_obstacles = 9
+    # obstacle_locs = generate_obstacle_grid(num_obstacles, bndry_x, bndry_y)
+    
+    num_obstacles = 3
+    obstacle_locs = [[-3,1],[3,1],[0,-3]]
+    obs_x_width = 1.5
+    obs_y_width = 1.5
 
-    scenario_filename = '../../data/exits.csv'
+    # scenario_filename = '../../data/exits.csv'
+    scenario_filename = '../../data/threeObsExits.csv'
 
     with open(scenario_filename, 'w', newline='') as csvfile:
         csvwriter = csv.writer(csvfile, delimiter=' ')
