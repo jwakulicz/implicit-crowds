@@ -80,13 +80,13 @@ void ImplicitEngine::init(double xRange, double yRange, int xCells, int yCells)
 	_globalTime = 0;
 	_spatialDatabase = new SpatialProximityDatabase(VectorXd::Zero(2, 1), Vector2D(xRange, yRange), Vector2D(xCells, yCells));
 	//some defult paramaters, can be easily set via a file and calling readParameters
-	_k = 2;
-	_p = 2.;
+	_k = 1.5;
+	_p = 3.25;
 	_t0 = 3.;
 	_ksi = 2.;
 	_eps = 0.2;
 	_eta = 0.01;
-	_neighborDist = 3.;
+	_neighborDist = 7.;
 	_newtonIter = 100;
 	_window = 5;
 	_eps_x = 1e-5;

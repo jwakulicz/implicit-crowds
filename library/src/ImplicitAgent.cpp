@@ -49,7 +49,7 @@ void ImplicitAgent::destroy()
 // pointer to object SpatialProximityDatabase variable pd. so the address is passed to this function.
 // must dereference to access the object itself.
 // const after * means the pointer cannot be changed to point to a different object in this function,
-// but the object itself can be changed in here.
+// but the object can be changed in here.
 void ImplicitAgent::init(const AgentInitialParameters& initialConditions, SpatialProximityDatabase* const pd)
 {
 	// initialize the agent based on the initial conditions
