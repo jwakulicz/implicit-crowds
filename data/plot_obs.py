@@ -10,7 +10,7 @@ def generate_random_obstacles(num_obstacles, bndry_x, bndry_y):
 bndry_x = [-10,10]
 bndry_y = [-10, 10]
 
-num_obstacles = 6
+num_obstacles = 8
 
 locs = generate_random_obstacles(num_obstacles, bndry_x, bndry_y)
 print(locs)
