@@ -101,12 +101,13 @@ if __name__ == '__main__':
     #                  [-7.53379075,  0.62215894]]
     # num_obstacles = 3
     obstacle_locs = [[-3,1],[3,1],[0,-3]]
-    obs_widths = [1.5, 0.5, 1]
+    obs_x_widths = [1.5, 0.5, 1]
+    obs_y_widths = [1.5, 2.5, 1]
     # obs_x_width = 0.5
     # obs_y_width = 0.5
 
     # scenario_filename = '../../data/exits.csv'
-    scenario_filename = '../../data/threeObsExitsVarySize.csv'
+    scenario_filename = '../../data/threeObsExitsVaryShape.csv'
     # scenario_filename = '../../data/randNineObsExits.csv'
     with open(scenario_filename, 'w', newline='') as csvfile:
         csvwriter = csv.writer(csvfile, delimiter=' ')
@@ -119,5 +120,5 @@ if __name__ == '__main__':
         csvwriter.writerow([num_obstacles])
         for id in range(num_obstacles):
             # row = define_obstacle_row(id, obstacle_locs[id], obs_x_width, obs_y_width)
-            row = define_obstacle_row(id, obstacle_locs[id], obs_widths[id], obs_widths[id])
+            row = define_obstacle_row(id, obstacle_locs[id], obs_x_widths[id], obs_y_widths[id])
             csvwriter.writerow(row)
