@@ -51,19 +51,19 @@ if __name__ == '__main__':
     goal_vel = 1.0
     radius = 0.05
 
-    num_obstacles = 9
+    num_obstacles = 3
     # obstacle_locs = generate_obstacle_grid(num_obstacles, bndry_x, bndry_y)
     # obstacle_locs = generate_random_obstacles(num_obstacles, bndry_x, bndry_y)
     #--------- 9 ----------
-    obstacle_locs = [[ 4.25059769,  4.20199507],
-                     [ 0.13074282,  0.38856129],
-                     [-0.47377547,  5.68734952],
-                     [ 6.74957198, -3.94297074],
-                     [ 2.69676101,  1.44101561],
-                     [-1.02467093, -3.97677974],
-                     [-3.49739704, -5.55176822],
-                     [-5.64761841,  1.29330791],
-                     [ 3.71063279, -2.29824409]]
+    # obstacle_locs = [[ 4.25059769,  4.20199507],
+    #                  [ 0.13074282,  0.38856129],
+    #                  [-0.47377547,  5.68734952],
+    #                  [ 6.74957198, -3.94297074],
+    #                  [ 2.69676101,  1.44101561],
+    #                  [-1.02467093, -3.97677974],
+    #                  [-3.49739704, -5.55176822],
+    #                  [-5.64761841,  1.29330791],
+    #                  [ 3.71063279, -2.29824409]]
     #--------- 4 ----------
     # obstacle_locs = [[-4.54623763,  3.83850972],
     #                  [ 4.97537701,  1.36902887],
@@ -100,13 +100,14 @@ if __name__ == '__main__':
     #                  [ 0.90374774, -0.06145983],
     #                  [-7.53379075,  0.62215894]]
     # num_obstacles = 3
-    # obstacle_locs = [[-3,1],[3,1],[0,-3]]
-    obs_x_width = 0.5
-    obs_y_width = 0.5
+    obstacle_locs = [[-3,1],[3,1],[0,-3]]
+    obs_widths = [1.5, 0.5, 1]
+    # obs_x_width = 0.5
+    # obs_y_width = 0.5
 
     # scenario_filename = '../../data/exits.csv'
-    # scenario_filename = '../../data/threeObsExits.csv'
-    scenario_filename = '../../data/randNineObsExits.csv'
+    scenario_filename = '../../data/threeObsExitsVarySize.csv'
+    # scenario_filename = '../../data/randNineObsExits.csv'
     with open(scenario_filename, 'w', newline='') as csvfile:
         csvwriter = csv.writer(csvfile, delimiter=' ')
         csvwriter.writerow(bndry_x)
@@ -117,5 +118,6 @@ if __name__ == '__main__':
             csvwriter.writerow(row)
         csvwriter.writerow([num_obstacles])
         for id in range(num_obstacles):
-            row = define_obstacle_row(id, obstacle_locs[id], obs_x_width, obs_y_width)
+            # row = define_obstacle_row(id, obstacle_locs[id], obs_x_width, obs_y_width)
+            row = define_obstacle_row(id, obstacle_locs[id], obs_widths[id], obs_widths[id])
             csvwriter.writerow(row)
